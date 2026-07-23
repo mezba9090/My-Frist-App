@@ -1,0 +1,26 @@
+name: Build Android APK
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '11'
+    - name: Setup Cordova & Build APK
+      run: |
+        npm install -g cordova
+        cordova create myapp com.example.myapp MyApp
+        rm myapp/www/index.html
+        cp index.html myapp/www/
+        cd myapp && cordova platform add android --skip-pkg-json-check
+        ./platforms/android/gradlew assembleDebug
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-app-apk
+        path: myapp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
